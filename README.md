@@ -1,2 +1,3 @@
-# Franchises
-Full stack technical test, franchises
+# dependence
+npm Init -y
+npm install
