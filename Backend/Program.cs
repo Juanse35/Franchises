@@ -1,2 +1,2 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿// This is the entry point of the backend application for the franchise management system.
+MainApp.Run();
