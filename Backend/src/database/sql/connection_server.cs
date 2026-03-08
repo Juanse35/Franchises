@@ -1,11 +1,9 @@
 using System;
-using Microsoft.Data.SqlClient; // library for SQL Server database connection
+using Microsoft.Data.SqlClient;
 
-//method that contains the logic to connect to the database and verify the connection.
 public class ConnectionServer
 {
-
-    // credentials and connection string for the database connection
+    // connection string
     private static string connectionString =
         "Server=database-sql.database.windows.net;" +
         "Database=db_Franchise;" +
@@ -14,7 +12,7 @@ public class ConnectionServer
         "Encrypt=True;" +
         "Connection Timeout=30;";
 
-    // This method verifies that the connection to the database was successful and returns a boolean value.
+    // verify connection
     public static bool Connect()
     {
         try
@@ -31,5 +29,10 @@ public class ConnectionServer
             Console.WriteLine(ex.Message);
             return false;
         }
+    }
+
+    public static SqlConnection GetConnection()
+    {
+        return new SqlConnection(connectionString);
     }
 }
