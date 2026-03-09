@@ -1,7 +1,8 @@
-using System;
+// This file defines the Branch model which represents the structure of the branch table in the database
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+// namespace for the branch model, it contains the properties that represent the columns of the tbl_branch table in the database
 namespace branch.Models
 {
     [Table("tbl_branch")]

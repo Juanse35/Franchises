@@ -1,7 +1,4 @@
-using System;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-
+// This is the main entry point of the application, it will run the application and listen for incoming requests
 public class MainApp
 {
     public static void Run(string[] args)
@@ -27,11 +24,15 @@ public class MainApp
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment() || true)
         {
+            // Enable Swagger in development and for testing purposes
             app.UseSwagger();
             app.UseSwaggerUI();
         }
 
+        // Enable HTTPS redirection for secure communication
         app.UseHttpsRedirection();
+
+        // Map the routes defined in the BranchRoutes class
         app.MapRoutes();
 
         Console.WriteLine("Server is running on https://localhost:5001 \n");

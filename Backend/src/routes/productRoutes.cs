@@ -1,86 +1,134 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
+// this file defines the routes for the product endpoints in the application,
 using product.Models;
 
 public static class ProductRoutes
 {
     public static void MapProductRoutes(this WebApplication app)
     {
+        // Retrieves all products stored in the system.
         app.MapGet("/getProducts", () =>
         {
             var controller = new ProductControllers();
             var products = controller.GetProduct();
-            return Results.Ok(products);
+
+            return Results.Ok(new
+            {
+                message = "Product list retrieved successfully.",
+                data = products
+            });
         });
 
+        // Creates a new product and associates it with a branch.
         app.MapPost("/createProduct", (Product product) =>
         {
             if (product == null || string.IsNullOrEmpty(product.Name_product))
-                return Results.BadRequest("Invalid product data");
+            {
+                return Results.BadRequest(new
+                {
+                    message = "Invalid product data. Name is required."
+                });
+            }
 
             var controller = new ProductControllers();
             var createdProduct = controller.CreateProduct(product);
+
             if (createdProduct != null)
             {
-                return Results.Created($"/getProduct/{createdProduct.Id_product}", createdProduct);
+                return Results.Created($"/getProduct/{createdProduct.Id_product}", new
+                {
+                    message = "Product created successfully.",
+                    data = createdProduct
+                });
             }
-            else
+
+            return Results.BadRequest(new
             {
-                return Results.BadRequest("Error creating product. Please check if the branch ID is valid.");
-            }
+                message = "Error creating product. Please ensure the branch ID is valid."
+            });
         });
 
+        // Retrieves a specific product by its unique identifier.
         app.MapGet("/getProduct/{id:int}", (int id) =>
         {
             var controller = new ProductControllers();
             var product = controller.GetProductById(id);
+
             if (product != null)
             {
-                return Results.Ok(product);
+                return Results.Ok(new
+                {
+                    message = $"Product with ID {id} retrieved successfully.",
+                    data = product
+                });
             }
-            else
+
+            return Results.NotFound(new
             {
-                return Results.NotFound("Product not found.");
-            }
+                message = $"Product with ID {id} not found."
+            });
         });
 
+        // Retrieves all products associated with a specific branch.
         app.MapGet("/getProductByIdBranch/{branchId:int}", (int branchId) =>
         {
             var controller = new ProductControllers();
             var products = controller.GetProductByIdBranch(branchId);
-            return Results.Ok(products);
+
+            return Results.Ok(new
+            {
+                message = $"Products for branch ID {branchId} retrieved successfully.",
+                data = products
+            });
         });
 
+        // Updates an existing product by its unique identifier.
         app.MapPut("/updateProduct/{id:int}", (int id, Product product) =>
         {
             if (product == null || string.IsNullOrEmpty(product.Name_product))
-                return Results.BadRequest("Invalid product data");
+            {
+                return Results.BadRequest(new
+                {
+                    message = "Invalid product data. Name is required."
+                });
+            }
 
             product.Id_product = id;
             var controller = new ProductControllers();
             var updatedProduct = controller.UpdateProduct(product);
+
             if (updatedProduct != null)
             {
-                return Results.Ok(updatedProduct);
+                return Results.Ok(new
+                {
+                    message = $"Product with ID {id} updated successfully.",
+                    data = updatedProduct
+                });
             }
-            else
+
+            return Results.NotFound(new
             {
-                return Results.NotFound("Product not found or update failed.");
-            }
+                message = $"Product with ID {id} not found or update failed."
+            });
         });
 
+        // Deletes a product from the system by its unique identifier.
         app.MapDelete("/deleteProduct/{id:int}", (int id) =>
         {
             var controller = new ProductControllers();
             var deleted = controller.DeleteProduct(id);
+
             if (deleted)
             {
-                return Results.Ok($"Product with ID {id} deleted successfully.");
+                return Results.Ok(new
+                {
+                    message = $"Product with ID {id} deleted successfully."
+                });
             }
-            else
+
+            return Results.NotFound(new
             {
-                return Results.NotFound("Product not found.");
-            }
+                message = $"Product with ID {id} not found."
+            });
         });
     }
 }

@@ -1,7 +1,8 @@
-using System;
+// This file defines the Franchise model which represents the franchise entity in the database
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+// the namespace for the franchise model, it will be used to organize the code and avoid naming conflicts 
 namespace franchise.Models
 {
     [Table("tbl_franchise")]

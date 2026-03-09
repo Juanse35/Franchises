@@ -1,10 +1,11 @@
-using System;
-using System.Collections.Generic;
+// This file contains the BranchControllers class which is responsible for handling 
+// all the operations related to branches in the application
 using Microsoft.Data.SqlClient;
 using branch.Models;
 
 public class BranchControllers
 {
+    // Retrieves all branches stored in the database.
     public List<Branch> GetBranch()
     {
         List<Branch> branches = new List<Branch>();
@@ -28,16 +29,19 @@ public class BranchControllers
                         FranchiseId = Convert.ToInt32(reader["franchise_id"])
                     });
                 }
+
+                Console.WriteLine("Branch list retrieved successfully.");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al obtener sucursales: {ex.Message}");
+            Console.WriteLine($"Error retrieving branches: {ex.Message}");
         }
 
         return branches;
     }
 
+    // Retrieves a specific branch by its unique identifier.
     public Branch GetBranchById(int id)
     {
         Branch branch = null;
@@ -61,17 +65,24 @@ public class BranchControllers
                         Name_branch = reader["name_branch"].ToString(),
                         FranchiseId = Convert.ToInt32(reader["franchise_id"])
                     };
+
+                    Console.WriteLine($"Branch with ID {id} retrieved successfully.");
+                }
+                else
+                {
+                    Console.WriteLine($"No branch found with ID {id}.");
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al obtener sucursal por ID: {ex.Message}");
+            Console.WriteLine($"Error retrieving branch by ID: {ex.Message}");
         }
 
         return branch;
     }
 
+    // Retrieves all branches associated with a specific franchise.
     public List<Branch> GetBranchByIdFranchise(int franchiseId)
     {
         List<Branch> branches = new List<Branch>();
@@ -96,23 +107,27 @@ public class BranchControllers
                         FranchiseId = Convert.ToInt32(reader["franchise_id"])
                     });
                 }
+
+                Console.WriteLine($"Branches for franchise ID {franchiseId} retrieved successfully.");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al obtener sucursales por ID de franquicia: {ex.Message}");
+            Console.WriteLine($"Error retrieving branches by franchise ID: {ex.Message}");
         }
 
         return branches;
     }
 
+    // Creates a new branch and ensures the associated franchise exists.
     public Branch CreateBranch(Branch branch)
     {
         var franchiseController = new FranchiseControllers();
         var existingFranchise = franchiseController.GetFranchiseById(branch.FranchiseId);
+
         if (existingFranchise == null)
         {
-            Console.WriteLine("La franquicia con ID " + branch.FranchiseId + " no existe.");
+            Console.WriteLine($"Franchise with ID {branch.FranchiseId} does not exist.");
             return null;
         }
 
@@ -133,16 +148,19 @@ public class BranchControllers
 
                 branch.Id_branch = insertedId;
 
+                Console.WriteLine($"Branch created successfully with ID {insertedId}.");
+
                 return branch;
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al crear sucursal: {ex.Message}");
+            Console.WriteLine($"Error creating branch: {ex.Message}");
             return null;
         }
     }
 
+    // Updates an existing branch using its unique identifier.
     public Branch UpdateBranch(Branch branch)
     {
         try
@@ -163,21 +181,24 @@ public class BranchControllers
 
                 if (rowsAffected > 0)
                 {
+                    Console.WriteLine($"Branch with ID {branch.Id_branch} updated successfully.");
                     return branch;
                 }
                 else
                 {
+                    Console.WriteLine($"Branch with ID {branch.Id_branch} not found for update.");
                     return null;
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al actualizar sucursal: {ex.Message}");
+            Console.WriteLine($"Error updating branch: {ex.Message}");
             return null;
         }
     }
 
+    // Deletes a branch from the database by its unique identifier.
     public bool DeleteBranch(int id)
     {
         try
@@ -191,12 +212,21 @@ public class BranchControllers
                 connection.Open();
                 int rowsAffected = command.ExecuteNonQuery();
 
-                return rowsAffected > 0;
+                if (rowsAffected > 0)
+                {
+                    Console.WriteLine($"Branch with ID {id} deleted successfully.");
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine($"Branch with ID {id} not found for deletion.");
+                    return false;
+                }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al eliminar sucursal: {ex.Message}");
+            Console.WriteLine($"Error deleting branch: {ex.Message}");
             return false;
         }
     }

@@ -1,10 +1,12 @@
-using System;
-using System.Collections.Generic;
+// This file contains the FranchiseControllers class which is responsible for handling all operations related to franchises,
+// such as creating, retrieving, updating, and deleting franchise records in the database.
+
 using Microsoft.Data.SqlClient;
-using franchise.Models; 
+using franchise.Models;
 
 public class FranchiseControllers
 {
+    // Retrieves all franchises stored in the database.
     public List<Franchise> GetFranchise()
     {
         List<Franchise> franchises = new List<Franchise>();
@@ -25,19 +27,22 @@ public class FranchiseControllers
                     {
                         Id = Convert.ToInt32(reader["id"]),
                         Name = reader["name"].ToString(),
-                        CreatedAt = Convert.ToDateTime(reader["registration_date"]) 
+                        CreatedAt = Convert.ToDateTime(reader["registration_date"])
                     });
                 }
+
+                Console.WriteLine("Franchise list retrieved successfully.");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al obtener franquicias: {ex.Message}");
+            Console.WriteLine($"Error retrieving franchises from database: {ex.Message}");
         }
 
         return franchises;
     }
 
+    // Retrieves a specific franchise by its unique identifier.
     public Franchise GetFranchiseById(int id)
     {
         Franchise franchise = null;
@@ -59,19 +64,26 @@ public class FranchiseControllers
                     {
                         Id = Convert.ToInt32(reader["id"]),
                         Name = reader["name"].ToString(),
-                        CreatedAt = Convert.ToDateTime(reader["registration_date"]) 
+                        CreatedAt = Convert.ToDateTime(reader["registration_date"])
                     };
+
+                    Console.WriteLine($"Franchise with ID {id} retrieved successfully.");
+                }
+                else
+                {
+                    Console.WriteLine($"No franchise found with ID {id}.");
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al obtener franquicia por ID: {ex.Message}");
+            Console.WriteLine($"Error retrieving franchise by ID: {ex.Message}");
         }
 
         return franchise;
     }
 
+    // Creates a new franchise and saves it into the database.
     public Franchise CreateFranchise(Franchise franchise)
     {
         try
@@ -87,20 +99,23 @@ public class FranchiseControllers
 
                 connection.Open();
 
-                int insertedId = (int)command.ExecuteScalar(); 
+                int insertedId = (int)command.ExecuteScalar();
                 franchise.Id = insertedId;
                 franchise.CreatedAt = DateTime.Now;
+
+                Console.WriteLine($"Franchise created successfully with ID {insertedId}.");
 
                 return franchise;
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al crear franquicia: {ex.Message}");
+            Console.WriteLine($"Error creating franchise: {ex.Message}");
             return null;
         }
     }
 
+    // Updates the information of an existing franchise in the database.
     public Franchise UpdateFranchise(Franchise franchise)
     {
         try
@@ -121,21 +136,26 @@ public class FranchiseControllers
                 if (rowsAffected > 0)
                 {
                     franchise.CreatedAt = GetFranchiseById(franchise.Id)?.CreatedAt ?? DateTime.Now;
+
+                    Console.WriteLine($"Franchise with ID {franchise.Id} updated successfully.");
+
                     return franchise;
                 }
                 else
                 {
-                    return null; 
+                    Console.WriteLine($"Franchise with ID {franchise.Id} was not found for update.");
+                    return null;
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al actualizar franquicia: {ex.Message}");
+            Console.WriteLine($"Error updating franchise: {ex.Message}");
             return null;
         }
     }
 
+    // Deletes a franchise record from the database by its identifier.
     public bool DeleteFranchise(int id)
     {
         try
@@ -149,12 +169,21 @@ public class FranchiseControllers
                 connection.Open();
                 int rowsAffected = command.ExecuteNonQuery();
 
-                return rowsAffected > 0; 
+                if (rowsAffected > 0)
+                {
+                    Console.WriteLine($"Franchise with ID {id} deleted successfully.");
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine($"Franchise with ID {id} was not found for deletion.");
+                    return false;
+                }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al eliminar franquicia: {ex.Message}");
+            Console.WriteLine($"Error deleting franchise: {ex.Message}");
             return false;
         }
     }

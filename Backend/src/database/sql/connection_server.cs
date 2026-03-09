@@ -1,9 +1,9 @@
-using System;
+// this class is responsible for managing the connection to the SQL database
 using Microsoft.Data.SqlClient;
 
 public class ConnectionServer
 {
-    // connection string
+    // information to connect to the database, this should be stored in a secure way in a real application
     private static string connectionString =
         "Server=database-sql.database.windows.net;" +
         "Database=db_Franchise;" +
@@ -31,6 +31,7 @@ public class ConnectionServer
         }
     }
 
+    // the method to get the connection
     public static SqlConnection GetConnection()
     {
         return new SqlConnection(connectionString);
