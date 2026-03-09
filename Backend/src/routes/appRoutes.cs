@@ -12,5 +12,7 @@ public static class AppRoutes
         });
 
         app.MapFranchiseRoutes();
+        app.MapBranchRoutes();
+        app.MapProductRoutes();
     }
 }

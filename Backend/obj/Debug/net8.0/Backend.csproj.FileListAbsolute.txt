@@ -76,3 +76,4 @@ C:\Users\sebas\OneDrive\Documentos\Proyectos\Solvo\Prueba Tecnica\Franchises\Bac
 C:\Users\sebas\OneDrive\Documentos\Proyectos\Solvo\Prueba Tecnica\Franchises\Backend\obj\Debug\net8.0\Backend.pdb
 C:\Users\sebas\OneDrive\Documentos\Proyectos\Solvo\Prueba Tecnica\Franchises\Backend\obj\Debug\net8.0\Backend.genruntimeconfig.cache
 C:\Users\sebas\OneDrive\Documentos\Proyectos\Solvo\Prueba Tecnica\Franchises\Backend\obj\Debug\net8.0\ref\Backend.dll
+C:\Users\sebas\OneDrive\Documentos\Proyectos\Solvo\Prueba Tecnica\Franchises\Backend\bin\Debug\net8.0\Microsoft.AspNetCore.OpenApi.dll

@@ -59,7 +59,7 @@ public class FranchiseControllers
                     {
                         Id = Convert.ToInt32(reader["id"]),
                         Name = reader["name"].ToString(),
-                        CreatedAt = Convert.ToDateTime(reader["registration_date"]) // <-- corregido
+                        CreatedAt = Convert.ToDateTime(reader["registration_date"]) 
                     };
                 }
             }
@@ -101,29 +101,6 @@ public class FranchiseControllers
         }
     }
 
-    public bool DeleteFranchise(int id)
-    {
-        try
-        {
-            using (SqlConnection connection = ConnectionServer.GetConnection())
-            {
-                string query = "DELETE FROM tbl_franchise WHERE id = @id";
-                SqlCommand command = new SqlCommand(query, connection);
-                command.Parameters.AddWithValue("@id", id);
-
-                connection.Open();
-                int rowsAffected = command.ExecuteNonQuery();
-
-                return rowsAffected > 0; // Devuelve true si se eliminó alguna fila
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error al eliminar franquicia: {ex.Message}");
-            return false;
-        }
-    }
-
     public Franchise UpdateFranchise(Franchise franchise)
     {
         try
@@ -143,13 +120,12 @@ public class FranchiseControllers
 
                 if (rowsAffected > 0)
                 {
-                    // Si se actualizó correctamente, devolvemos la franquicia con los datos actualizados
                     franchise.CreatedAt = GetFranchiseById(franchise.Id)?.CreatedAt ?? DateTime.Now;
                     return franchise;
                 }
                 else
                 {
-                    return null; // No se encontró la franquicia para actualizar
+                    return null; 
                 }
             }
         }
@@ -157,6 +133,29 @@ public class FranchiseControllers
         {
             Console.WriteLine($"Error al actualizar franquicia: {ex.Message}");
             return null;
+        }
+    }
+
+    public bool DeleteFranchise(int id)
+    {
+        try
+        {
+            using (SqlConnection connection = ConnectionServer.GetConnection())
+            {
+                string query = "DELETE FROM tbl_franchise WHERE id = @id";
+                SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@id", id);
+
+                connection.Open();
+                int rowsAffected = command.ExecuteNonQuery();
+
+                return rowsAffected > 0; 
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al eliminar franquicia: {ex.Message}");
+            return false;
         }
     }
 }
