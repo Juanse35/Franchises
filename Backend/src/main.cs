@@ -15,9 +15,21 @@ public class MainApp
 
         var builder = WebApplication.CreateBuilder(args);
 
-        // this is where you would add services like database context
+        // Add services
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+
+        // Configure CORS
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend",
+                policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+        });
 
         var app = builder.Build();
 
@@ -32,10 +44,14 @@ public class MainApp
         // Enable HTTPS redirection for secure communication
         app.UseHttpsRedirection();
 
+        // Enable CORS
+        app.UseCors("AllowFrontend");
+
         // Map the routes defined in the BranchRoutes class
         app.MapRoutes();
 
         Console.WriteLine("Server is running on https://localhost:5001 \n");
+
         app.Run();
     }
 }

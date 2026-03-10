@@ -1,34 +1,35 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import React from 'react'
+
+// Import reaact dependencies
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+// Import Pages
+import FranchisePage from './page/FranchisePage/franchisePage.jsx'
+import BranchPage from './page/BranchPage/branchPage.jsx'
+import ProductPage from './page/ProductPage/productPage.jsx'
 
+// Import Context
+import { FranchiseProvider } from './context/franchiseContext.jsx'
+import { BranchProvider } from './context/branchContext.jsx'
+
+function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <FranchiseProvider>
+      <BranchProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path='/Franchise' element={<FranchisePage />} />
+            <Route path='/Branch' element={<BranchPage />} />
+            <Route path='/Branch/:id' element={<BranchPage />} />
+            <Route path='/Product' element={<ProductPage />} />
+            <Route path='/Product/:id' element={<ProductPage />} />
+            <Route path='*' element={<Navigate to="/Franchise" />} />
+          </Routes>
+        </BrowserRouter>
+      </BranchProvider>
+    </FranchiseProvider>
   )
 }
 

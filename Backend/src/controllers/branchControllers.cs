@@ -14,7 +14,17 @@ public class BranchControllers
         {
             using (SqlConnection connection = ConnectionServer.GetConnection())
             {
-                string query = "SELECT id_branch, name_branch, franchise_id FROM tbl_branch";
+                string query = @"
+                    SELECT 
+                        b.id_branch,
+                        b.name_branch,
+                        b.franchise_id,
+                        f.name AS franchise_name,
+                        b.registration_date
+                    FROM tbl_branch b
+                    INNER JOIN tbl_franchise f 
+                        ON b.franchise_id = f.id";
+
                 SqlCommand command = new SqlCommand(query, connection);
 
                 connection.Open();
@@ -26,7 +36,9 @@ public class BranchControllers
                     {
                         Id_branch = Convert.ToInt32(reader["id_branch"]),
                         Name_branch = reader["name_branch"].ToString(),
-                        FranchiseId = Convert.ToInt32(reader["franchise_id"])
+                        FranchiseId = Convert.ToInt32(reader["franchise_id"]),
+                        FranchiseName = reader["franchise_name"].ToString(),
+                        RegistrationDate = Convert.ToDateTime(reader["registration_date"])
                     });
                 }
 
@@ -50,7 +62,18 @@ public class BranchControllers
         {
             using (SqlConnection connection = ConnectionServer.GetConnection())
             {
-                string query = "SELECT id_branch, name_branch, franchise_id FROM tbl_branch WHERE id_branch = @id";
+                string query = @"
+                    SELECT 
+                        b.id_branch,
+                        b.name_branch,
+                        b.franchise_id,
+                        f.name AS franchise_name,
+                        b.registration_date
+                    FROM tbl_branch b
+                    INNER JOIN tbl_franchise f 
+                        ON b.franchise_id = f.id
+                    WHERE b.id_branch = @id";
+
                 SqlCommand command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@id", id);
 
@@ -63,14 +86,12 @@ public class BranchControllers
                     {
                         Id_branch = Convert.ToInt32(reader["id_branch"]),
                         Name_branch = reader["name_branch"].ToString(),
-                        FranchiseId = Convert.ToInt32(reader["franchise_id"])
+                        FranchiseId = Convert.ToInt32(reader["franchise_id"]),
+                        FranchiseName = reader["franchise_name"].ToString(),
+                        RegistrationDate = Convert.ToDateTime(reader["registration_date"])
                     };
 
                     Console.WriteLine($"Branch with ID {id} retrieved successfully.");
-                }
-                else
-                {
-                    Console.WriteLine($"No branch found with ID {id}.");
                 }
             }
         }
@@ -91,7 +112,18 @@ public class BranchControllers
         {
             using (SqlConnection connection = ConnectionServer.GetConnection())
             {
-                string query = "SELECT id_branch, name_branch, franchise_id FROM tbl_branch WHERE franchise_id = @franchiseId";
+                string query = @"
+                    SELECT 
+                        b.id_branch,
+                        b.name_branch,
+                        b.franchise_id,
+                        f.name AS franchise_name,
+                        b.registration_date
+                    FROM tbl_branch b
+                    INNER JOIN tbl_franchise f 
+                        ON b.franchise_id = f.id
+                    WHERE b.franchise_id = @franchiseId";
+
                 SqlCommand command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@franchiseId", franchiseId);
 
@@ -104,7 +136,9 @@ public class BranchControllers
                     {
                         Id_branch = Convert.ToInt32(reader["id_branch"]),
                         Name_branch = reader["name_branch"].ToString(),
-                        FranchiseId = Convert.ToInt32(reader["franchise_id"])
+                        FranchiseId = Convert.ToInt32(reader["franchise_id"]),
+                        FranchiseName = reader["franchise_name"].ToString(),
+                        RegistrationDate = Convert.ToDateTime(reader["registration_date"])
                     });
                 }
 

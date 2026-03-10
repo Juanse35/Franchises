@@ -18,35 +18,6 @@ public static class ProductRoutes
             });
         });
 
-        // Creates a new product and associates it with a branch.
-        app.MapPost("/createProduct", (Product product) =>
-        {
-            if (product == null || string.IsNullOrEmpty(product.Name_product))
-            {
-                return Results.BadRequest(new
-                {
-                    message = "Invalid product data. Name is required."
-                });
-            }
-
-            var controller = new ProductControllers();
-            var createdProduct = controller.CreateProduct(product);
-
-            if (createdProduct != null)
-            {
-                return Results.Created($"/getProduct/{createdProduct.Id_product}", new
-                {
-                    message = "Product created successfully.",
-                    data = createdProduct
-                });
-            }
-
-            return Results.BadRequest(new
-            {
-                message = "Error creating product. Please ensure the branch ID is valid."
-            });
-        });
-
         // Retrieves a specific product by its unique identifier.
         app.MapGet("/getProduct/{id:int}", (int id) =>
         {
@@ -78,6 +49,35 @@ public static class ProductRoutes
             {
                 message = $"Products for branch ID {branchId} retrieved successfully.",
                 data = products
+            });
+        });
+
+        // Creates a new product and associates it with a branch.
+        app.MapPost("/createProduct", (Product product) =>
+        {
+            if (product == null || string.IsNullOrEmpty(product.Name_product))
+            {
+                return Results.BadRequest(new
+                {
+                    message = "Invalid product data. Name is required."
+                });
+            }
+
+            var controller = new ProductControllers();
+            var createdProduct = controller.CreateProduct(product);
+
+            if (createdProduct != null)
+            {
+                return Results.Created($"/getProduct/{createdProduct.Id_product}", new
+                {
+                    message = "Product created successfully.",
+                    data = createdProduct
+                });
+            }
+
+            return Results.BadRequest(new
+            {
+                message = "Error creating product. Please ensure the branch ID is valid."
             });
         });
 

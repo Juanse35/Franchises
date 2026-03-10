@@ -2,7 +2,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-// namespace for the branch model, it contains the properties that represent the columns of the tbl_branch table in the database
 namespace branch.Models
 {
     [Table("tbl_branch")]
@@ -19,5 +18,12 @@ namespace branch.Models
         [Required]
         [Column("franchise_id")]
         public int FranchiseId { get; set; }
+
+        [Column("registration_date")]
+        public DateTime RegistrationDate { get; set; }
+
+        // Campo que viene del JOIN con tbl_franchise
+        [NotMapped]
+        public string FranchiseName { get; set; }
     }
 }

@@ -1,3 +1,4 @@
+/* this SQL script creates the necessary tables for the franchise management application */
 use db_Franchise;
 
 CREATE TABLE tbl_franchise (
