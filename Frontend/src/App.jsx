@@ -13,21 +13,22 @@ import ProductPage from './page/ProductPage/productPage.jsx'
 // Import Context
 import { FranchiseProvider } from './context/franchiseContext.jsx'
 import { BranchProvider } from './context/branchContext.jsx'
+import { ProductProvider } from './context/productContext.jsx'
 
 function App() {
   return (
     <FranchiseProvider>
       <BranchProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path='/Franchise' element={<FranchisePage />} />
-            <Route path='/Branch' element={<BranchPage />} />
-            <Route path='/Branch/:id' element={<BranchPage />} />
-            <Route path='/Product' element={<ProductPage />} />
-            <Route path='/Product/:id' element={<ProductPage />} />
-            <Route path='*' element={<Navigate to="/Franchise" />} />
-          </Routes>
-        </BrowserRouter>
+        <ProductProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path='/Franchise' element={<FranchisePage />} />
+              <Route path='/Branch' element={<BranchPage />} />
+              <Route path='/Product' element={<ProductPage />} />
+              <Route path='*' element={<Navigate to="/Franchise" />} />
+            </Routes>
+          </BrowserRouter>
+        </ProductProvider>
       </BranchProvider>
     </FranchiseProvider>
   )

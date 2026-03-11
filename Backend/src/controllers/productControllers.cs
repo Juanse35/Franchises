@@ -1,11 +1,9 @@
-// This file contains the ProductControllers class which is responsible for handling 
-// all the operations related to products in the application
 using Microsoft.Data.SqlClient;
 using product.Models;
 
 public class ProductControllers
 {
-    // Retrieves all products stored in the database.
+    // Retrieves all products along with branch and franchise names
     public List<Product> GetProduct()
     {
         List<Product> products = new List<Product>();
@@ -14,35 +12,50 @@ public class ProductControllers
         {
             using (SqlConnection connection = ConnectionServer.GetConnection())
             {
-                string query = "SELECT id_product, name_product, imag_url, branch_id FROM tbl_product";
+                string query = @"
+                SELECT 
+                    p.id_product,
+                    p.name_product,
+                    p.stock,
+                    p.branch_id,
+                    p.registration_date,
+                    b.name_branch,
+                    f.name AS franchise_name
+                FROM tbl_product p
+                INNER JOIN tbl_branch b ON p.branch_id = b.id_branch
+                INNER JOIN tbl_franchise f ON b.franchise_id = f.id;";
+
                 SqlCommand command = new SqlCommand(query, connection);
-
                 connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
 
-                while (reader.Read())
+                using (SqlDataReader reader = command.ExecuteReader())
                 {
-                    products.Add(new Product
+                    while (reader.Read())
                     {
-                        Id_product = Convert.ToInt32(reader["id_product"]),
-                        Name_product = reader["name_product"].ToString(),
-                        Imag_url = reader["imag_url"]?.ToString(),
-                        BranchId = Convert.ToInt32(reader["branch_id"])
-                    });
-                }
+                        Product product = new Product
+                        {
+                            Id_product = Convert.ToInt32(reader["id_product"]),
+                            Name_product = reader["name_product"].ToString(),
+                            Stock = Convert.ToInt32(reader["stock"]),
+                            BranchId = Convert.ToInt32(reader["branch_id"]),
+                            BranchName = reader["name_branch"].ToString(),
+                            FranchiseName = reader["franchise_name"].ToString()
+                        };
 
-                Console.WriteLine("Product list retrieved successfully.");
+                        products.Add(product);
+                    }
+                }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error retrieving products: {ex.Message}");
+            Console.WriteLine("SQL ERROR:");
+            Console.WriteLine(ex.Message);
         }
 
         return products;
     }
-
-    // Retrieves a product by its unique identifier.
+    // Retrieves a single product by its ID along with branch and franchise names
     public Product GetProductById(int id)
     {
         Product product = null;
@@ -51,28 +64,38 @@ public class ProductControllers
         {
             using (SqlConnection connection = ConnectionServer.GetConnection())
             {
-                string query = "SELECT id_product, name_product, imag_url, branch_id FROM tbl_product WHERE id_product = @id";
+                string query = @"
+                    SELECT 
+                        p.id_product,
+                        p.name_product,
+                        p.stock,
+                        p.branch_id,
+                        b.name_branch,
+                        f.name AS franchise_name
+                    FROM tbl_product p
+                    INNER JOIN tbl_branch b ON p.branch_id = b.id_branch
+                    INNER JOIN tbl_franchise f ON b.franchise_id = f.id
+                    WHERE p.id_product = @id";
+
                 SqlCommand command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@id", id);
 
                 connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
 
-                if (reader.Read())
+                using (SqlDataReader reader = command.ExecuteReader())
                 {
-                    product = new Product
+                    if (reader.Read())
                     {
-                        Id_product = Convert.ToInt32(reader["id_product"]),
-                        Name_product = reader["name_product"].ToString(),
-                        Imag_url = reader["imag_url"]?.ToString(),
-                        BranchId = Convert.ToInt32(reader["branch_id"])
-                    };
-
-                    Console.WriteLine($"Product with ID {id} retrieved successfully.");
-                }
-                else
-                {
-                    Console.WriteLine($"No product found with ID {id}.");
+                        product = new Product
+                        {
+                            Id_product = Convert.ToInt32(reader["id_product"]),
+                            Name_product = reader["name_product"].ToString(),
+                            Stock = Convert.ToInt32(reader["stock"]),
+                            BranchId = Convert.ToInt32(reader["branch_id"]),
+                            BranchName = reader["name_branch"].ToString(),
+                            FranchiseName = reader["franchise_name"].ToString()
+                        };
+                    }
                 }
             }
         }
@@ -84,7 +107,7 @@ public class ProductControllers
         return product;
     }
 
-    // Retrieves all products associated with a specific branch.
+    // Retrieves all products for a specific branch along with branch and franchise names
     public List<Product> GetProductByIdBranch(int branchId)
     {
         List<Product> products = new List<Product>();
@@ -93,25 +116,39 @@ public class ProductControllers
         {
             using (SqlConnection connection = ConnectionServer.GetConnection())
             {
-                string query = "SELECT id_product, name_product, imag_url, branch_id FROM tbl_product WHERE branch_id = @branchId";
+                string query = @"
+                    SELECT 
+                        p.id_product,
+                        p.name_product,
+                        p.stock,
+                        p.branch_id,
+                        b.name_branch,
+                        f.name AS franchise_name
+                    FROM tbl_product p
+                    INNER JOIN tbl_branch b ON p.branch_id = b.id_branch
+                    INNER JOIN tbl_franchise f ON b.franchise_id = f.id
+                    WHERE p.branch_id = @branchId";
+
                 SqlCommand command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@branchId", branchId);
 
                 connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
 
-                while (reader.Read())
+                using (SqlDataReader reader = command.ExecuteReader())
                 {
-                    products.Add(new Product
+                    while (reader.Read())
                     {
-                        Id_product = Convert.ToInt32(reader["id_product"]),
-                        Name_product = reader["name_product"].ToString(),
-                        Imag_url = reader["imag_url"]?.ToString(),
-                        BranchId = Convert.ToInt32(reader["branch_id"])
-                    });
+                        products.Add(new Product
+                        {
+                            Id_product = Convert.ToInt32(reader["id_product"]),
+                            Name_product = reader["name_product"].ToString(),
+                            Stock = Convert.ToInt32(reader["stock"]),
+                            BranchId = Convert.ToInt32(reader["branch_id"]),
+                            BranchName = reader["name_branch"].ToString(),
+                            FranchiseName = reader["franchise_name"].ToString()
+                        });
+                    }
                 }
-
-                Console.WriteLine($"Products for branch ID {branchId} retrieved successfully.");
             }
         }
         catch (Exception ex)
@@ -122,7 +159,7 @@ public class ProductControllers
         return products;
     }
 
-    // Creates a new product and validates the associated branch exists.
+    // Creates a new product in the database
     public Product CreateProduct(Product product)
     {
         var branchController = new BranchControllers();
@@ -137,21 +174,20 @@ public class ProductControllers
         {
             using (SqlConnection connection = ConnectionServer.GetConnection())
             {
-                string insertQuery = @"INSERT INTO tbl_product (name_product, imag_url, branch_id)
-                                       OUTPUT INSERTED.id_product
-                                       VALUES (@name, @imageUrl, @branchId)";
+                string insertQuery = @"
+                    INSERT INTO tbl_product (name_product, branch_id, stock)
+                    OUTPUT INSERTED.id_product
+                    VALUES (@name, @branchId, @stock)";
 
                 SqlCommand insertCommand = new SqlCommand(insertQuery, connection);
                 insertCommand.Parameters.AddWithValue("@name", product.Name_product);
-                insertCommand.Parameters.AddWithValue("@imageUrl", (object)product.Imag_url ?? DBNull.Value);
                 insertCommand.Parameters.AddWithValue("@branchId", product.BranchId);
+                insertCommand.Parameters.AddWithValue("@stock", product.Stock);
 
                 connection.Open();
                 int insertedId = (int)insertCommand.ExecuteScalar();
-
                 product.Id_product = insertedId;
 
-                Console.WriteLine($"Product created successfully with ID {insertedId}.");
                 return product;
             }
         }
@@ -162,36 +198,28 @@ public class ProductControllers
         }
     }
 
-    // Updates an existing product using its unique identifier.
+    // Updates an existing product (only name and stock are allowed to change)
     public Product UpdateProduct(Product product)
     {
         try
         {
             using (SqlConnection connection = ConnectionServer.GetConnection())
             {
-                string query = @"UPDATE tbl_product
-                                SET name_product = @name, imag_url = @imageUrl, branch_id = @branchId
-                                WHERE id_product = @id";
+                string query = @"
+                    UPDATE tbl_product
+                    SET name_product = @name, stock = @stock
+                    WHERE id_product = @id";
 
                 SqlCommand command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@name", product.Name_product);
-                command.Parameters.AddWithValue("@imageUrl", (object)product.Imag_url ?? DBNull.Value);
-                command.Parameters.AddWithValue("@branchId", product.BranchId);
+                command.Parameters.AddWithValue("@stock", product.Stock);
                 command.Parameters.AddWithValue("@id", product.Id_product);
 
                 connection.Open();
                 int rowsAffected = command.ExecuteNonQuery();
 
-                if (rowsAffected > 0)
-                {
-                    Console.WriteLine($"Product with ID {product.Id_product} updated successfully.");
-                    return product;
-                }
-                else
-                {
-                    Console.WriteLine($"Product with ID {product.Id_product} not found for update.");
-                    return null;
-                }
+                if (rowsAffected > 0) return product;
+                return null;
             }
         }
         catch (Exception ex)
@@ -201,7 +229,7 @@ public class ProductControllers
         }
     }
 
-    // Deletes a product from the database by its unique identifier.
+    // Deletes a product from the database by its ID
     public bool DeleteProduct(int id)
     {
         try
@@ -213,18 +241,7 @@ public class ProductControllers
                 command.Parameters.AddWithValue("@id", id);
 
                 connection.Open();
-                int rowsAffected = command.ExecuteNonQuery();
-
-                if (rowsAffected > 0)
-                {
-                    Console.WriteLine($"Product with ID {id} deleted successfully.");
-                    return true;
-                }
-                else
-                {
-                    Console.WriteLine($"Product with ID {id} not found for deletion.");
-                    return false;
-                }
+                return command.ExecuteNonQuery() > 0;
             }
         }
         catch (Exception ex)

@@ -1,24 +1,25 @@
+import Swal from 'sweetalert2'
 import { createContext, useContext, useState } from "react";
-import { getFranchiseRequest, getFranchiseByIdRequest, createFranchiseRequest, updateFranchiseRequest, deleteFranchiseRequest } from "../api/apiFranchise.js";
+import { 
+    getFranchiseRequest, 
+    getFranchiseByIdRequest, 
+    createFranchiseRequest, 
+    updateFranchiseRequest, 
+    deleteFranchiseRequest 
+} from "../api/apiFranchise.js";
 
 const franchiseContext = createContext() 
 
 export const useFranchise = () => {
     const context = useContext(franchiseContext)
-
-    if(!context) {
-        throw new Error('useFranchise must be used within a FranchiseProvider')
-    }
-
+    if(!context) throw new Error('useFranchise must be used within a FranchiseProvider')
     return context
 }
-
 
 export function FranchiseProvider({children}) {
     const [franchises, setFranchises] = useState([])
 
-
-    // Functions to interact with the API, fetching and creating franchises
+    // Fetch all franchises from API
     const getFranchises = async () => {
         try {
             const response = await getFranchiseRequest()
@@ -28,7 +29,7 @@ export function FranchiseProvider({children}) {
         }
     }
 
-    // Function to get a single franchise by ID
+    // Fetch a single franchise by ID
     const getFranchise = async (id) => {
         try {
             const response = await getFranchiseByIdRequest(id)
@@ -38,50 +39,115 @@ export function FranchiseProvider({children}) {
         }
     }
 
-    // Function to create a new franchise and refresh the list
+    // Create a new franchise and refresh list
     const createFranchise = async (data) => {
-            try {
-                console.log('Data to be sent to API:', data);
-                const response = await createFranchiseRequest(data)
-                console.log('Franchise created successfully:', response.data);
-                getFranchises() 
-            } catch (error) {
-                console.error('Error creating franchise:', error)
-            }
-    }
-
-    // Function to update an existing franchise and refresh the list
-    const updateFranchise = async (id, data) => {
         try {
             console.log('Data to be sent to API:', data);
-            const response = await updateFranchiseRequest(id, data)
-            console.log('Franchise updated successfully:', response.data);
-            getFranchises() 
+            await createFranchiseRequest(data);
+
+            // Show success alert
+            Swal.fire({
+                title: 'Success!',
+                text: 'The franchise was created successfully.',
+                icon: 'success',
+                showConfirmButton: false, 
+                timer: 2000,              
+                timerProgressBar: true    
+            });
+
+            getFranchises(); // Refresh list
         } catch (error) {
-            console.error('Error updating franchise:', error)
+            console.error('Error creating franchise:', error);
+
+            // Show error alert
+            Swal.fire({
+                title: "Error!",
+                text: "Failed to create the franchise. Please try again.",
+                icon: "error",
+            });
+        }
+    };
+
+    // Update a franchise and refresh list
+    const updateFranchise = async (id, data) => {
+        try {
+            await updateFranchiseRequest(id, data);
+
+            // Show success alert
+            Swal.fire({
+                title: 'Success!',
+                text: 'The franchise was updated successfully.',
+                icon: 'success',
+                showConfirmButton: false, 
+                timer: 2000,              
+                timerProgressBar: true    
+            });
+
+            getFranchises(); // Refresh list
+        } catch (error) {
+            console.error('Error updating franchise:', error);
+            Swal.fire({
+                title: "Error!",
+                text: "Failed to update the franchise. Please try again.",
+                icon: "error",
+            });
         } 
     } 
 
-    // Function to delete a franchise and refresh the list
+    // Delete a franchise with confirmation
     const deleteFranchise = async (id) => {
         try {
-            await deleteFranchiseRequest(id)
-            console.log('Franchise deleted successfully');
-            getFranchises()
-        } catch (error) {
-            console.error('Error deleting franchise:', error)
-        }
-    } 
+            // Confirm before deleting
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: 'Deleting this franchise will permanently remove all associated branches and products. This action cannot be undone.',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete everything',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#37297b',
+                cancelButtonColor: '#cc1515'
+            });
 
+            if (result.isConfirmed) {
+                await deleteFranchiseRequest(id);
+
+                // Show success alert
+                Swal.fire({
+                    title: 'Deleted!',
+                    text: 'The franchise has been deleted.',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                });
+
+                getFranchises(); // Refresh list
+            }
+
+        } catch (error) {
+            console.error('Error deleting franchise:', error);
+
+            // Show error alert
+            Swal.fire({
+                title: 'Error!',
+                text: 'Failed to delete the franchise. Please try again.',
+                icon: 'error',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
+        }
+    };
 
     return (
         <franchiseContext.Provider value={{
-                franchises,
-                getFranchises,
-                createFranchise,
-                getFranchise,
-                updateFranchise,
-                deleteFranchise,
+            franchises,
+            getFranchises,
+            createFranchise,
+            getFranchise,
+            updateFranchise,
+            deleteFranchise,
         }}>
             {children}
         </franchiseContext.Provider>

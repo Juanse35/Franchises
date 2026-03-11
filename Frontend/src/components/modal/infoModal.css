@@ -1,0 +1,35 @@
+.container-info{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.container-information{
+    width: 28vh;
+    font-size: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+
+.container-information p{
+    margin-top: 10px;
+}
+
+.btn-close{
+    color: #fff;
+    background-color: #cc1515;
+    width: 15vh;
+    display: inline-block;
+    text-align: center;
+    height: 40px;
+    font-size: 16px;
+    border-radius: 10px;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: .2s all;
+}
+
+.btn-close:hover{
+    background-color: #df2929;
+}

@@ -239,28 +239,91 @@ public class BranchControllers
         {
             using (SqlConnection connection = ConnectionServer.GetConnection())
             {
-                string query = "DELETE FROM tbl_branch WHERE id_branch = @id";
-                SqlCommand command = new SqlCommand(query, connection);
-                command.Parameters.AddWithValue("@id", id);
-
                 connection.Open();
-                int rowsAffected = command.ExecuteNonQuery();
 
-                if (rowsAffected > 0)
+                using (SqlTransaction transaction = connection.BeginTransaction())
                 {
-                    Console.WriteLine($"Branch with ID {id} deleted successfully.");
-                    return true;
-                }
-                else
-                {
-                    Console.WriteLine($"Branch with ID {id} not found for deletion.");
-                    return false;
+                    try
+                    {
+                        //Verify branch exists
+                        string checkBranchQuery = "SELECT COUNT(*) FROM tbl_branch WHERE id_branch = @id";
+
+                        SqlCommand checkCmd = new SqlCommand(checkBranchQuery, connection, transaction);
+                        checkCmd.Parameters.AddWithValue("@id", id);
+
+                        int branchExists = (int)checkCmd.ExecuteScalar();
+
+                        if (branchExists == 0)
+                        {
+                            Console.WriteLine($"Branch with ID {id} does not exist.");
+                            transaction.Rollback();
+                            return false;
+                        }
+
+                        //Get products associated with this branch
+                        List<int> productIds = new List<int>();
+
+                        string getProductsQuery = "SELECT id_product FROM tbl_product WHERE branch_id = @branchId";
+
+                        SqlCommand getProductsCmd = new SqlCommand(getProductsQuery, connection, transaction);
+                        getProductsCmd.Parameters.AddWithValue("@branchId", id);
+
+                        SqlDataReader reader = getProductsCmd.ExecuteReader();
+
+                        while (reader.Read())
+                        {
+                            productIds.Add(Convert.ToInt32(reader["id_product"]));
+                        }
+
+                        reader.Close();
+
+
+                        //Delete products belonging to this branch
+                        foreach (int productId in productIds)
+                        {
+                            string deleteProductQuery = "DELETE FROM tbl_product WHERE id_product = @productId";
+
+                            SqlCommand deleteProductCmd = new SqlCommand(deleteProductQuery, connection, transaction);
+                            deleteProductCmd.Parameters.AddWithValue("@productId", productId);
+
+                            deleteProductCmd.ExecuteNonQuery();
+                        }
+
+
+                        // 4️⃣ Delete the branch
+                        string deleteBranchQuery = "DELETE FROM tbl_branch WHERE id_branch = @id";
+
+                        SqlCommand deleteBranchCmd = new SqlCommand(deleteBranchQuery, connection, transaction);
+                        deleteBranchCmd.Parameters.AddWithValue("@id", id);
+
+                        int rowsAffected = deleteBranchCmd.ExecuteNonQuery();
+
+
+                        if (rowsAffected > 0)
+                        {
+                            transaction.Commit();
+                            Console.WriteLine($"Branch {id} and its products deleted successfully.");
+                            return true;
+                        }
+                        else
+                        {
+                            transaction.Rollback();
+                            Console.WriteLine($"Branch with ID {id} could not be deleted.");
+                            return false;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        Console.WriteLine($"Cascade delete error: {ex.Message}");
+                        return false;
+                    }
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error deleting branch: {ex.Message}");
+            Console.WriteLine($"Delete error: {ex.Message}");
             return false;
         }
     }
