@@ -3,23 +3,29 @@ using franchise.Models;
 
 public class FranchiseControllers
 {
-    // Get all franchises
+    // Retrieves all franchises from the database
     public List<Franchise> GetFranchise()
     {
         List<Franchise> franchises = new List<Franchise>();
 
         try
         {
+            // Open database connection
             using (SqlConnection connection = ConnectionServer.GetConnection())
             {
+                // SQL query to retrieve franchise information
                 string query = "SELECT id, name, registration_date FROM tbl_franchise";
+
                 SqlCommand command = new SqlCommand(query, connection);
 
                 connection.Open();
+
+                // Execute query and read results
                 SqlDataReader reader = command.ExecuteReader();
 
                 while (reader.Read())
                 {
+                    // Map database values to Franchise model
                     franchises.Add(new Franchise
                     {
                         Id = Convert.ToInt32(reader["id"]),
@@ -31,13 +37,14 @@ public class FranchiseControllers
         }
         catch (Exception ex)
         {
+            // Log error if retrieval fails
             Console.WriteLine($"Error retrieving franchises: {ex.Message}");
         }
 
         return franchises;
     }
 
-    // Get franchise by ID
+    // Retrieves a single franchise by its ID
     public Franchise GetFranchiseById(int id)
     {
         Franchise franchise = null;
@@ -46,14 +53,19 @@ public class FranchiseControllers
         {
             using (SqlConnection connection = ConnectionServer.GetConnection())
             {
+                // SQL query with parameter to prevent SQL injection
                 string query = "SELECT id, name, registration_date FROM tbl_franchise WHERE id=@id";
 
                 SqlCommand command = new SqlCommand(query, connection);
+
+                // Bind ID parameter
                 command.Parameters.AddWithValue("@id", id);
 
                 connection.Open();
+
                 SqlDataReader reader = command.ExecuteReader();
 
+                // Map result if franchise exists
                 if (reader.Read())
                 {
                     franchise = new Franchise
@@ -67,37 +79,44 @@ public class FranchiseControllers
         }
         catch (Exception ex)
         {
+            // Log error if retrieval fails
             Console.WriteLine($"Error retrieving franchise: {ex.Message}");
         }
 
         return franchise;
     }
 
-    // Create franchise
+    // Creates a new franchise in the database
     public Franchise CreateFranchise(Franchise franchise)
     {
+        // Validate franchise name
         if (string.IsNullOrWhiteSpace(franchise.Name))
         {
             Console.WriteLine("Franchise name is required");
             return null;
         }
 
+        // Normalize name (trim spaces and convert to lowercase)
         franchise.Name = franchise.Name.Trim().ToLower();
 
         try
         {
             using (SqlConnection connection = ConnectionServer.GetConnection())
             {
+                // Insert franchise and return generated ID
                 string query = @"INSERT INTO tbl_franchise(name)
                                 OUTPUT INSERTED.id
                                 VALUES(@name)";
 
                 SqlCommand command = new SqlCommand(query, connection);
+
                 command.Parameters.AddWithValue("@name", franchise.Name);
 
                 connection.Open();
 
+                // Execute insert and retrieve generated ID
                 int insertedId = (int)command.ExecuteScalar();
+
                 franchise.Id = insertedId;
                 franchise.CreatedAt = DateTime.Now;
 
@@ -106,26 +125,30 @@ public class FranchiseControllers
         }
         catch (Exception ex)
         {
+            // Log error if insert fails
             Console.WriteLine($"Error creating franchise: {ex.Message}");
             return null;
         }
     }
 
-    // Update franchise
+    // Updates an existing franchise
     public Franchise UpdateFranchise(Franchise franchise)
     {
+        // Validate franchise name
         if (string.IsNullOrWhiteSpace(franchise.Name))
         {
             Console.WriteLine("Franchise name is required");
             return null;
         }
 
+        // Normalize franchise name
         franchise.Name = franchise.Name.Trim().ToLower();
 
         try
         {
             using (SqlConnection connection = ConnectionServer.GetConnection())
             {
+                // SQL update query
                 string query = @"UPDATE tbl_franchise
                                  SET name=@name
                                  WHERE id=@id";
@@ -136,8 +159,11 @@ public class FranchiseControllers
                 command.Parameters.AddWithValue("@id", franchise.Id);
 
                 connection.Open();
+
+                // Execute update
                 int rows = command.ExecuteNonQuery();
 
+                // Return franchise if update succeeded
                 if (rows > 0)
                     return franchise;
 
@@ -146,12 +172,13 @@ public class FranchiseControllers
         }
         catch (Exception ex)
         {
+            // Log error if update fails
             Console.WriteLine($"Error updating franchise: {ex.Message}");
             return null;
         }
     }
 
-    // Delete franchise with full cascade
+    // Deletes a franchise and all related branches and products
     public bool DeleteFranchise(int id)
     {
         try
@@ -160,16 +187,18 @@ public class FranchiseControllers
             {
                 connection.Open();
 
+                // Begin transaction to ensure atomic cascade delete
                 using (SqlTransaction transaction = connection.BeginTransaction())
                 {
                     try
                     {
-                        // 1️⃣ Get all branches associated with the franchise
+                        // Step 1: Retrieve all branches belonging to the franchise
                         List<int> branchIds = new List<int>();
 
                         string getBranchesQuery = "SELECT id_branch FROM tbl_branch WHERE franchise_id = @id";
 
                         SqlCommand getBranchesCmd = new SqlCommand(getBranchesQuery, connection, transaction);
+
                         getBranchesCmd.Parameters.AddWithValue("@id", id);
 
                         SqlDataReader reader = getBranchesCmd.ExecuteReader();
@@ -182,36 +211,40 @@ public class FranchiseControllers
                         reader.Close();
 
 
-                        //Delete products associated with those branches
+                        // Step 2: Delete all products associated with those branches
                         foreach (int branchId in branchIds)
                         {
                             string deleteProductsQuery = "DELETE FROM tbl_product WHERE branch_id = @branchId";
 
                             SqlCommand deleteProductsCmd = new SqlCommand(deleteProductsQuery, connection, transaction);
+
                             deleteProductsCmd.Parameters.AddWithValue("@branchId", branchId);
 
                             deleteProductsCmd.ExecuteNonQuery();
                         }
 
 
-                        //Delete branches
+                        // Step 3: Delete branches linked to the franchise
                         string deleteBranchesQuery = "DELETE FROM tbl_branch WHERE franchise_id = @id";
 
                         SqlCommand deleteBranchesCmd = new SqlCommand(deleteBranchesQuery, connection, transaction);
+
                         deleteBranchesCmd.Parameters.AddWithValue("@id", id);
 
                         deleteBranchesCmd.ExecuteNonQuery();
 
 
-                        //Delete franchise
+                        // Step 4: Delete the franchise itself
                         string deleteFranchiseQuery = "DELETE FROM tbl_franchise WHERE id = @id";
 
                         SqlCommand deleteFranchiseCmd = new SqlCommand(deleteFranchiseQuery, connection, transaction);
+
                         deleteFranchiseCmd.Parameters.AddWithValue("@id", id);
 
                         int rows = deleteFranchiseCmd.ExecuteNonQuery();
 
 
+                        // Commit transaction if franchise was deleted successfully
                         if (rows > 0)
                         {
                             transaction.Commit();
@@ -220,6 +253,7 @@ public class FranchiseControllers
                         }
                         else
                         {
+                            // Rollback if franchise was not found
                             transaction.Rollback();
                             Console.WriteLine("Franchise not found.");
                             return false;
@@ -227,6 +261,7 @@ public class FranchiseControllers
                     }
                     catch (Exception ex)
                     {
+                        // Rollback transaction if any step fails
                         transaction.Rollback();
                         Console.WriteLine($"Cascade delete error: {ex.Message}");
                         return false;
@@ -236,6 +271,7 @@ public class FranchiseControllers
         }
         catch (Exception ex)
         {
+            // Log connection or transaction errors
             Console.WriteLine($"Delete error: {ex.Message}");
             return false;
         }

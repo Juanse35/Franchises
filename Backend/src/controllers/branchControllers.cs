@@ -1,5 +1,6 @@
-// This file contains the BranchControllers class which is responsible for handling 
+// This file contains the BranchControllers class which is responsible for handling
 // all the operations related to branches in the application
+
 using Microsoft.Data.SqlClient;
 using branch.Models;
 
@@ -32,6 +33,7 @@ public class BranchControllers
 
                 while (reader.Read())
                 {
+                    // Map database values to Branch model
                     branches.Add(new Branch
                     {
                         Id_branch = Convert.ToInt32(reader["id_branch"]),
@@ -52,6 +54,7 @@ public class BranchControllers
 
         return branches;
     }
+
 
     // Retrieves a specific branch by its unique identifier.
     public Branch GetBranchById(int id)
@@ -103,6 +106,7 @@ public class BranchControllers
         return branch;
     }
 
+
     // Retrieves all branches associated with a specific franchise.
     public List<Branch> GetBranchByIdFranchise(int franchiseId)
     {
@@ -153,9 +157,22 @@ public class BranchControllers
         return branches;
     }
 
+
     // Creates a new branch and ensures the associated franchise exists.
     public Branch CreateBranch(Branch branch)
     {
+        // Validate branch name
+        if (string.IsNullOrWhiteSpace(branch.Name_branch))
+        {
+            Console.WriteLine("Branch name is required.");
+            return null;
+        }
+
+        // Normalize branch name:
+        // Trim spaces and convert to lowercase to maintain consistency in the database
+        branch.Name_branch = branch.Name_branch.Trim().ToLowerInvariant();
+
+        // Verify that the franchise exists before creating the branch
         var franchiseController = new FranchiseControllers();
         var existingFranchise = franchiseController.GetFranchiseById(branch.FranchiseId);
 
@@ -178,6 +195,7 @@ public class BranchControllers
                 insertCommand.Parameters.AddWithValue("@franchiseId", branch.FranchiseId);
 
                 connection.Open();
+
                 int insertedId = (int)insertCommand.ExecuteScalar();
 
                 branch.Id_branch = insertedId;
@@ -194,9 +212,20 @@ public class BranchControllers
         }
     }
 
+
     // Updates an existing branch using its unique identifier.
     public Branch UpdateBranch(Branch branch)
     {
+        // Validate branch name
+        if (string.IsNullOrWhiteSpace(branch.Name_branch))
+        {
+            Console.WriteLine("Branch name is required.");
+            return null;
+        }
+
+        // Normalize branch name before updating
+        branch.Name_branch = branch.Name_branch.Trim().ToLowerInvariant();
+
         try
         {
             using (SqlConnection connection = ConnectionServer.GetConnection())
@@ -232,7 +261,9 @@ public class BranchControllers
         }
     }
 
+
     // Deletes a branch from the database by its unique identifier.
+    // Also deletes all products associated with the branch.
     public bool DeleteBranch(int id)
     {
         try
@@ -245,7 +276,7 @@ public class BranchControllers
                 {
                     try
                     {
-                        //Verify branch exists
+                        // Verify if the branch exists
                         string checkBranchQuery = "SELECT COUNT(*) FROM tbl_branch WHERE id_branch = @id";
 
                         SqlCommand checkCmd = new SqlCommand(checkBranchQuery, connection, transaction);
@@ -260,44 +291,21 @@ public class BranchControllers
                             return false;
                         }
 
-                        //Get products associated with this branch
-                        List<int> productIds = new List<int>();
+                        // Delete products associated with the branch
+                        string deleteProductsQuery = "DELETE FROM tbl_product WHERE branch_id = @branchId";
 
-                        string getProductsQuery = "SELECT id_product FROM tbl_product WHERE branch_id = @branchId";
+                        SqlCommand deleteProductsCmd = new SqlCommand(deleteProductsQuery, connection, transaction);
+                        deleteProductsCmd.Parameters.AddWithValue("@branchId", id);
 
-                        SqlCommand getProductsCmd = new SqlCommand(getProductsQuery, connection, transaction);
-                        getProductsCmd.Parameters.AddWithValue("@branchId", id);
+                        deleteProductsCmd.ExecuteNonQuery();
 
-                        SqlDataReader reader = getProductsCmd.ExecuteReader();
-
-                        while (reader.Read())
-                        {
-                            productIds.Add(Convert.ToInt32(reader["id_product"]));
-                        }
-
-                        reader.Close();
-
-
-                        //Delete products belonging to this branch
-                        foreach (int productId in productIds)
-                        {
-                            string deleteProductQuery = "DELETE FROM tbl_product WHERE id_product = @productId";
-
-                            SqlCommand deleteProductCmd = new SqlCommand(deleteProductQuery, connection, transaction);
-                            deleteProductCmd.Parameters.AddWithValue("@productId", productId);
-
-                            deleteProductCmd.ExecuteNonQuery();
-                        }
-
-
-                        // 4️⃣ Delete the branch
+                        // Delete the branch
                         string deleteBranchQuery = "DELETE FROM tbl_branch WHERE id_branch = @id";
 
                         SqlCommand deleteBranchCmd = new SqlCommand(deleteBranchQuery, connection, transaction);
                         deleteBranchCmd.Parameters.AddWithValue("@id", id);
 
                         int rowsAffected = deleteBranchCmd.ExecuteNonQuery();
-
 
                         if (rowsAffected > 0)
                         {

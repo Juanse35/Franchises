@@ -4,15 +4,16 @@ import { useEffect } from 'react';
 import { useBranch } from '../../../context/branchContext.jsx';
 import { useProduct } from '../../../context/productContext.jsx';
 
-
 function FormProduct({ closeModal, productId = null, branchId = null, branchName = null }) {
 
+    // React Hook Form setup
     const { register, handleSubmit, setValue } = useForm();
 
+    // Contexts for branches and products
     const { branches, getBranches } = useBranch();
     const { createProduct, updateProduct, getProduct } = useProduct();
 
-    // Cargar ramas disponibles
+    // Load available branches for select dropdown
     useEffect(() => {
         const loadBranches = async () => {
             if (!branches || branches.length === 0) {
@@ -22,10 +23,11 @@ function FormProduct({ closeModal, productId = null, branchId = null, branchName
         loadBranches();
     }, []);
 
-    // Cargar producto si hay productId
+    // Load product data if editing
     useEffect(() => {
         const loadProduct = async () => {
             if (productId) {
+                // Fetch product by ID
                 const product = await getProduct(productId);
                 if (product) {
                     setValue("name_product", product.name_product);
@@ -33,12 +35,14 @@ function FormProduct({ closeModal, productId = null, branchId = null, branchName
                     setValue("branchId", product.branchId);
                 }
             } else if (branchId) {
+                // Pre-fill branchId if provided
                 setValue("branchId", branchId);
             }
         };
         loadProduct();
     }, [productId]);
 
+    // Submit form (create or update product)
     const onSubmit = async (data) => {
         const productData = {
             name_product: data.name_product,
@@ -52,11 +56,14 @@ function FormProduct({ closeModal, productId = null, branchId = null, branchName
             await createProduct(productData);
         }
 
+        // Close modal after submit
         closeModal();
     };
 
     return (
         <div className="container-form-product">
+
+            {/* Form title */}
             <h2 className='formTitle'>
                 {productId ? "Edit Product" : "Register Product"}
             </h2>
@@ -64,7 +71,7 @@ function FormProduct({ closeModal, productId = null, branchId = null, branchName
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="container-inputs">
 
-                    {/* Nombre del Producto */}
+                    {/* Product Name input */}
                     <label>Product Name:</label><br />
                     <input
                         type="text"
@@ -73,10 +80,11 @@ function FormProduct({ closeModal, productId = null, branchId = null, branchName
                     />
                     <br /><br />
 
-                    {/* Selección de Branch */}
+                    {/* Branch selection */}
                     <label>Branch:</label><br />
                     {branchName ? (
                         <>
+                            {/* Display branch name if provided */}
                             <input
                                 type="text"
                                 value={branchName}
@@ -89,6 +97,7 @@ function FormProduct({ closeModal, productId = null, branchId = null, branchName
                             />
                         </>
                     ) : (
+                        // Dropdown to select branch
                         <select
                             className='select-form'
                             {...register("branchId", { required: true })}
@@ -103,7 +112,7 @@ function FormProduct({ closeModal, productId = null, branchId = null, branchName
                     )}
                     <br /><br />
 
-                    {/* Stock */}
+                    {/* Stock input */}
                     <label>Stock:</label><br />
                     <input
                         type="number"
@@ -115,12 +124,15 @@ function FormProduct({ closeModal, productId = null, branchId = null, branchName
 
                 </div>
 
+                {/* Form buttons */}
                 <div className="container-btn">
+                    {/* Submit button */}
                     <button type='submit' className="btn-register">
                         <i className="fa-solid fa-circle-check" />
                         {productId ? " Update" : " Register"}
                     </button>
 
+                    {/* Cancel button */}
                     <button type="button" className="btn-cancel" onClick={closeModal}>
                         <i className="fa-solid fa-circle-xmark" /> Cancel
                     </button>
@@ -130,4 +142,4 @@ function FormProduct({ closeModal, productId = null, branchId = null, branchName
     );
 }
 
-export default FormProduct
+export default FormProduct;

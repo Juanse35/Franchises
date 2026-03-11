@@ -11,29 +11,40 @@ import "./branchPage.css"
 
 function BranchPage() {
 
+  // Get branches data and actions from context
   const { branches, getBranches, getBranchByIdFranchise, deleteBranch } = useBranch()
+
+  // Get franchise ID from URL params
   const { id } = useParams()
 
+  // Modal visibility state
   const [showModal, setShowModal] = useState(false)
 
+  // Defines which modal form will be displayed
   const [modalType, setModalType] = useState(null)
 
+  // Stores selected branch ID for editing
   const [selectedId, setSelectedId] = useState(null)
 
+  // Stores selected branch data for product form
   const [selectedBranchId, setSelectedBranchId] = useState(null)
   const [selectedBranchName, setSelectedBranchName] = useState(null)
 
+  // Search and filter states
   const [searchTerm, setSearchTerm] = useState("")
   const [branchFilter, setBranchFilter] = useState("")
   const [franchiseFilter, setFranchiseFilter] = useState("")
 
+  // Load branches when component mounts or ID changes
   useEffect(() => {
 
     const fetchBranches = async () => {
 
       if (id) {
+        // Get branches from a specific franchise
         await getBranchByIdFranchise(id)
       } else {
+        // Get all branches
         await getBranches()
       }
 
@@ -43,8 +54,10 @@ function BranchPage() {
 
   }, [id])
 
+  // Open modal
   const openModal = () => setShowModal(true)
 
+  // Close modal and reset selected data
   const closeModal = () => {
 
     setShowModal(false)
@@ -58,7 +71,7 @@ function BranchPage() {
 
   }
 
-  // EDITAR BRANCH
+  // Edit branch
   const handleEdit = (branchId) => {
 
     setSelectedId(branchId)
@@ -69,11 +82,12 @@ function BranchPage() {
 
   }
 
+  // Delete branch
   const handleDelete = (branchId) => {
       deleteBranch(branchId)
   }
 
-  // ABRIR FORMULARIO PRODUCTO
+  // Open product form for selected branch
   const handleProducts = (branchId, branchName) => {
 
     setSelectedBranchId(branchId)
@@ -85,9 +99,11 @@ function BranchPage() {
 
   }
 
+  // Normalize text to ignore accents
   const normalizeText = (text) =>
     text.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
 
+  // Filter branches by search and selects
   const filteredBranches = useMemo(() => {
 
     return branches.filter(branch => {
@@ -106,26 +122,31 @@ function BranchPage() {
 
   }, [branches, searchTerm, branchFilter, franchiseFilter])
 
+  // Unique branch names for select filter
   const branchOptions = [...new Set(branches.map(b => b.name_branch))]
+
+  // Unique franchise names for select filter
   const franchiseOptions = [...new Set(branches.map(b => b.franchiseName))]
 
   return (
 
     <div className='container'>
 
+      {/* Navigation bar */}
       <div className='navBarComponents'>
         <Navbar />
       </div>
 
       <div className="Page">
 
-        {/* Header */}
+        {/* Page header */}
         <header className='header'>
 
           <div className="container-title-input">
 
             <h2 className='title'>Branches</h2>
 
+            {/* Search input */}
             <input
               className='search-input'
               type="search"
@@ -136,7 +157,7 @@ function BranchPage() {
 
           </div>
 
-          {/* Select Branch */}
+          {/* Filter by branch */}
           <select
             value={branchFilter}
             onChange={(e) => setBranchFilter(e.target.value)}
@@ -151,7 +172,7 @@ function BranchPage() {
 
           </select>
 
-          {/* Select Franchise */}
+          {/* Filter by franchise */}
           <select
             value={franchiseFilter}
             onChange={(e) => setFranchiseFilter(e.target.value)}
@@ -166,6 +187,7 @@ function BranchPage() {
 
           </select>
 
+          {/* Button to create branch */}
           <button
             className='create-button'
             onClick={() => {
@@ -183,7 +205,7 @@ function BranchPage() {
 
         <div className="Line"></div>
 
-        {/* Table Header */}
+        {/* Table header */}
         <div className='data-header'>
 
           <h3 className='info-data-header'>Id Branch</h3>
@@ -194,7 +216,7 @@ function BranchPage() {
 
         </div>
 
-        {/* Data */}
+        {/* Branch data */}
         <div className="data-container">
 
           {filteredBranches.length > 0 ? (
@@ -203,18 +225,24 @@ function BranchPage() {
 
               <div className="card-data" key={branch.id_branch}>
 
+                {/* Branch ID */}
                 <div className='data-item'>{branch.id_branch}</div>
 
+                {/* Branch name */}
                 <div className='data-item'>{branch.name_branch}</div>
 
+                {/* Franchise name */}
                 <div className='data-item'>{branch.franchiseName}</div>
 
+                {/* Registration date */}
                 <div className='data-item'>
                   {new Date(branch.registrationDate).toLocaleDateString()}
                 </div>
 
+                {/* Action buttons */}
                 <div className='data-item'>
 
+                  {/* Edit branch */}
                   <button
                     className='action edit'
                     onClick={() => handleEdit(branch.id_branch)}
@@ -222,6 +250,7 @@ function BranchPage() {
                     Edit
                   </button>
 
+                  {/* Delete branch */}
                   <button
                     className='action delete'
                     onClick={() => handleDelete(branch.id_branch)}
@@ -229,6 +258,7 @@ function BranchPage() {
                     Delete
                   </button>
 
+                  {/* Open products of this branch */}
                   <button
                     className='action navigate'
                     onClick={() =>
@@ -246,6 +276,7 @@ function BranchPage() {
 
           ) : (
 
+            // Message if no results found
             <p>No branches found.</p>
 
           )}
@@ -254,17 +285,18 @@ function BranchPage() {
 
       </div>
 
-      {/* MODAL */}
-
+      {/* Modal container */}
       {showModal && (
 
         <div className="modal-overlay" onClick={closeModal}>
 
+          {/* Prevent modal close when clicking inside */}
           <div
             className="modal-content"
             onClick={(e) => e.stopPropagation()}
           >
 
+            {/* Branch form */}
             {modalType === "branch" && (
 
               <FormBranch
@@ -275,6 +307,7 @@ function BranchPage() {
 
             )}
 
+            {/* Product form */}
             {modalType === "product" && (
 
               <FormProduct
